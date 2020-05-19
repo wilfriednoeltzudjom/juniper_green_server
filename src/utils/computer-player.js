@@ -16,48 +16,50 @@ class ComputerPlayer {
     this.socket = io.connect(`http://${process.env.HOST}:${process.env.PORT}`, {
       forceNew: true,
     });
-    logger.print(`computer ${this.socket.id} has join`);
+    this.socket.on('connect', () => {
+      logger.print(`computer ${this.socket.id} has join`);
 
-    this.socket.on('opponent joined', ({ player }) => {
-      this.player = player;
-    });
+      this.socket.on('opponent joined', ({ player }) => {
+        this.player = player;
+      });
 
-    this.socket.on(
-      'game data',
-      ({ currentValue, currentPlayer, game, playedValues }) => {
-        this.game = game;
-        this.playedValues = playedValues;
+      this.socket.on(
+        'game data',
+        ({ currentValue, currentPlayer, game, playedValues }) => {
+          this.game = game;
+          this.playedValues = playedValues;
 
-        if (currentPlayer === this.player.uuid) {
-          let value = -1;
-          let multiple = false;
-          for (let i = 1; i < 100; i += 1) {
-            if (!this.playedValues.includes(i)) {
-              if (i % currentValue === 0) {
-                value = i;
-              } else if (currentValue % i === 0) {
-                value = i;
-                multiple = true;
+          if (currentPlayer === this.player.uuid) {
+            let value = -1;
+            let multiple = false;
+            for (let i = 1; i < 100; i += 1) {
+              if (!this.playedValues.includes(i)) {
+                if (i % currentValue === 0) {
+                  value = i;
+                } else if (currentValue % i === 0) {
+                  value = i;
+                  multiple = true;
+                }
               }
             }
+            setTimeout(() => {
+              this.socket.emit('play', {
+                pin: this.game.pin,
+                choice: {
+                  value,
+                  current: currentValue,
+                  type: multiple ? choiceTypes.MULTIPLE : choiceTypes.DIVIDER,
+                },
+                playerId: this.player._id,
+              });
+            }, 2 * 1000);
           }
-          setTimeout(() => {
-            this.socket.emit('play', {
-              pin: this.game.pin,
-              choice: {
-                value,
-                current: currentValue,
-                type: multiple ? choiceTypes.MULTIPLE : choiceTypes.DIVIDER,
-              },
-              playerId: this.player._id,
-            });
-          }, 2 * 1000);
         }
-      }
-    );
+      );
 
-    this.socket.on('game ended', ({ game }) => {
-      logger.print(`computer received game ${game.pin} end`);
+      this.socket.on('game ended', ({ game }) => {
+        logger.print(`computer received game ${game.pin} end`);
+      });
     });
   }
 
