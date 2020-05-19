@@ -13,9 +13,10 @@ class ComputerPlayer {
   }
 
   start() {
-    this.socket = io.connect(`${process.env.HOST}:${process.env.PORT}`, {
+    this.socket = io.connect(`http://${process.env.HOST}:${process.env.PORT}`, {
       forceNew: true,
     });
+    logger.print(`computer ${this.socket.id} has join`);
 
     this.socket.on('opponent joined', ({ player }) => {
       this.player = player;
