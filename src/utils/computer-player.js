@@ -13,7 +13,7 @@ class ComputerPlayer {
   }
 
   start() {
-    this.socket = io.connect(process.env.HOST, {
+    this.socket = io.connect(`${process.env.HOST}:${process.env.PORT}`, {
       forceNew: true,
     });
 
